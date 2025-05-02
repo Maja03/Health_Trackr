@@ -1,9 +1,11 @@
 from flask import Flask, jsonify
 import os
+from flask_cors import CORS
 import psycopg2
 from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)
 
 # Database connection parameters from environment variables
 DB_PARAMS = {
