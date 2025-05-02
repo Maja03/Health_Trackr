@@ -11,8 +11,11 @@
 
     <script>
         document.getElementById("logBtn").onclick = function () {
-            fetch("http://localhost:5000/log", { method: "POST" })
-                .then(res => res.json())
+            fetch("http://backend:5000/log", { method: "POST" })
+            .then(res => {
+                    if (!res.ok) throw new Error("Server error");
+                    return res.json();
+                })
                 .then(data => {
                     document.getElementById("result").innerHTML = `
                         <p><strong>Date:</strong> ${new Date(data.date).toLocaleString()}</p>
@@ -21,6 +24,11 @@
                         <p><strong>Mood:</strong> ${data.mood}</p>
                         <p><strong>Steps:</strong> ${data.steps}</p>
                         <p style="margin-top:20px; font-size:20px;">${data.message}</p>
+                    `;
+                })
+                .catch(err => {
+                    document.getElementById("result").innerHTML = `
+                        <p style="color:red;">Failed to log health data: ${err.message}</p>
                     `;
                 });
         };
