@@ -11,7 +11,7 @@
 
     <script>
         document.getElementById("logBtn").onclick = function () {
-            fetch("http://localhost:5000/log", { method: "POST" })
+            fetch("http://helthtracker-backend:5000/log", { method: "POST" })
             .then(res => {
                     if (!res.ok) throw new Error("Server error");
                     return res.json();
