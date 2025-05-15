@@ -1,4 +1,4 @@
-Flask
-python-dotenv
+flask
 flask-cors
+flask-migrate
 psycopg2-binary
