@@ -4,22 +4,20 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
 import os
+import traceback
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})  # allow CORS from any origin
 
-# Database configuration using environment variables
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     f"postgresql://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}@"
     f"{os.environ['POSTGRES_HOST']}:{5432}/{os.environ['POSTGRES_DB']}"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Initialize extensions
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# Database model
 class HealthLog(db.Model):
     __tablename__ = "health_logs"
     id = db.Column(db.Integer, primary_key=True)
@@ -29,16 +27,17 @@ class HealthLog(db.Model):
     mood = db.Column(db.String)
     steps = db.Column(db.Integer)
 
-# Health check route
 @app.route("/", methods=["GET"])
 def home():
     return "HealthTrackr backend is running!"
 
-# Add a health log entry dynamically
 @app.route("/log", methods=["POST"])
 def log_health():
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Missing JSON body"}), 400
+
         log = HealthLog(
             water=data.get("water"),
             sleep=data.get("sleep"),
@@ -57,9 +56,9 @@ def log_health():
             "message": "Health log saved successfully!"
         })
     except Exception as e:
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-# View all health logs
 @app.route("/logs", methods=["GET"])
 def get_logs():
     logs = HealthLog.query.order_by(HealthLog.log_date.desc()).all()
@@ -74,10 +73,5 @@ def get_logs():
         } for log in logs
     ])
 
-# Global error handler
-@app.errorhandler(Exception)
-def handle_error(e):
-    return jsonify({"error": str(e)}), 500
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0")
+    app.run(host="0.0.0.0", port=5000)

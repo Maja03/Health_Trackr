@@ -2,5 +2,4 @@ Flask
 Flask-Cors
 Flask-SQLAlchemy
 Flask-Migrate
-gunicorn
 psycopg2-binary
