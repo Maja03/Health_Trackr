@@ -34,10 +34,16 @@ def home():
 @app.route("/log", methods=["POST"])
 def log_health():
     try:
-        print("Request Headers:", request.headers)  # Debug: see incoming headers
-        data = request.get_json(force=True)  # Force parse JSON regardless of Content-Type
-        if not data:
-            return jsonify({"error": "Missing JSON body"}), 400
+        print("Request Headers:", request.headers)
+        data = request.get_json(silent=True)
+
+        if data is None:
+            return jsonify({"error": "Invalid or missing JSON in request body"}), 400
+
+        required_fields = ["water", "sleep", "mood", "steps"]
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return jsonify({"error": f"Missing fields: {', '.join(missing_fields)}"}), 400
 
         log = HealthLog(
             water=data.get("water"),
@@ -59,20 +65,3 @@ def log_health():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-
-@app.route("/logs", methods=["GET"])
-def get_logs():
-    logs = HealthLog.query.order_by(HealthLog.log_date.desc()).all()
-    return jsonify([
-        {
-            "id": log.id,
-            "date": log.log_date.isoformat(),
-            "water": log.water,
-            "sleep": log.sleep,
-            "mood": log.mood,
-            "steps": log.steps
-        } for log in logs
-    ])
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
