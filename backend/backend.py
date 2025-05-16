@@ -34,7 +34,8 @@ def home():
 @app.route("/log", methods=["POST"])
 def log_health():
     try:
-        data = request.get_json()
+        print("Request Headers:", request.headers)  # Debug: see incoming headers
+        data = request.get_json(force=True)  # Force parse JSON regardless of Content-Type
         if not data:
             return jsonify({"error": "Missing JSON body"}), 400
 
