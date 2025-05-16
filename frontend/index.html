@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>HealthTrackr One Button</title>
 </head>
 <body style="text-align:center; margin-top:100px; font-family:sans-serif;">
@@ -11,35 +11,26 @@
 
     <script>
         document.getElementById("logBtn").onclick = function () {
-            fetch("http://localhost:5000/log", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    water: "2L",
-                    sleep: "8h",
-                    mood: "Happy",
-                    steps: 10000
-                }),
-            })
+            fetch("http://localhost:5000/log", { method: "POST" })
             .then(res => {
-                if (!res.ok) throw new Error("Server error");
-                return res.json();
-            })
-            .then(data => {
-                document.getElementById("result").innerHTML = `
-                    <p><strong>Date:</strong> ${new Date(data.date).toLocaleString()}</p>
-                    <p><strong>Water:</strong> ${data.water}</p>
-                    <p><strong>Sleep:</strong> ${data.sleep}</p>
-                    <p><strong>Mood:</strong> ${data.mood}</p>
-                    <p><strong>Steps:</strong> ${data.steps}</p>
-                    <p style="margin-top:20px; font-size:20px;">${data.message}</p>
-                `;
-            })
-            .catch(err => {
-                document.getElementById("result").innerHTML = `
-                    <p style="color:red;">Failed to log health data: ${err.message}</p>
-                `;
-            });
+                    if (!res.ok) throw new Error("Server error");
+                    return res.json();
+                })
+                .then(data => {
+                    document.getElementById("result").innerHTML = `
+                        <p><strong>Date:</strong> ${new Date(data.date).toLocaleString()}</p>
+                        <p><strong>Water:</strong> ${data.water}</p>
+                        <p><strong>Sleep:</strong> ${data.sleep}</p>
+                        <p><strong>Mood:</strong> ${data.mood}</p>
+                        <p><strong>Steps:</strong> ${data.steps}</p>
+                        <p style="margin-top:20px; font-size:20px;">${data.message}</p>
+                    `;
+                })
+                .catch(err => {
+                    document.getElementById("result").innerHTML = `
+                        <p style="color:red;">Failed to log health data: ${err.message}</p>
+                    `;
+                });
         };
     </script>
 </body>

@@ -1,24 +1,24 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime
 import os
-import traceback
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
+# SQLAlchemy Database URI setup
 app.config["SQLALCHEMY_DATABASE_URI"] = (
-    f"postgresql://{os.environ.get('POSTGRES_USER')}:{os.environ.get('POSTGRES_PASSWORD')}@"
-    f"{os.environ.get('POSTGRES_HOST', 'localhost')}:{os.environ.get('POSTGRES_PORT', 5432)}/"
-    f"{os.environ.get('POSTGRES_DB')}"
+    f"postgresql://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}@"
+    f"{os.environ['POSTGRES_HOST']}:{5432}/{os.environ['POSTGRES_DB']}"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+# Database model
 class HealthLog(db.Model):
     __tablename__ = "health_logs"
     id = db.Column(db.Integer, primary_key=True)
@@ -28,43 +28,33 @@ class HealthLog(db.Model):
     mood = db.Column(db.String)
     steps = db.Column(db.Integer)
 
+# Health check route
 @app.route("/", methods=["GET"])
 def home():
     return "HealthTrackr backend is running!"
 
+# Add a health log entry
 @app.route("/log", methods=["POST"])
 def log_health():
-    try:
-        data = request.get_json(force=True)
-        if not data:
-            return jsonify({"error": "Missing JSON body"}), 400
+    log = HealthLog(
+        water="8 glasses",
+        sleep="7 hours",
+        mood="Feeling good",
+        steps=8500
+    )
+    db.session.add(log)
+    db.session.commit()
 
-        required_fields = ["water", "sleep", "mood", "steps"]
-        missing_fields = [f for f in required_fields if f not in data]
-        if missing_fields:
-            return jsonify({"error": f"Missing fields: {', '.join(missing_fields)}"}), 400
+    return jsonify({
+        "date": log.log_date.isoformat(),
+        "water": log.water,
+        "sleep": log.sleep,
+        "mood": log.mood,
+        "steps": log.steps,
+        "message": "Health log saved successfully!"
+    })
 
-        log = HealthLog(
-            water=data["water"],
-            sleep=data["sleep"],
-            mood=data["mood"],
-            steps=int(data["steps"])
-        )
-        db.session.add(log)
-        db.session.commit()
-
-        return jsonify({
-            "date": log.log_date.isoformat(),
-            "water": log.water,
-            "sleep": log.sleep,
-            "mood": log.mood,
-            "steps": log.steps,
-            "message": "Health log saved successfully!"
-        })
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-
+# View all health logs
 @app.route("/logs", methods=["GET"])
 def get_logs():
     logs = HealthLog.query.order_by(HealthLog.log_date.desc()).all()
@@ -80,4 +70,4 @@ def get_logs():
     ])
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0")
