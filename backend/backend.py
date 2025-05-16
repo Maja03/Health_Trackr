@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -7,8 +7,9 @@ import os
 import traceback
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # allow CORS from any origin
+CORS(app, resources={r"/*": {"origins": "*"}})
 
+# Configure database connection from environment variables
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     f"postgresql://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}@"
     f"{os.environ['POSTGRES_HOST']}:{5432}/{os.environ['POSTGRES_DB']}"
@@ -65,3 +66,26 @@ def log_health():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+@app.route("/logs", methods=["GET"])
+def get_logs():
+    logs = HealthLog.query.order_by(HealthLog.log_date.desc()).all()
+    return jsonify([
+        {
+            "id": log.id,
+            "date": log.log_date.isoformat(),
+            "water": log.water,
+            "sleep": log.sleep,
+            "mood": log.mood,
+            "steps": log.steps
+        } for log in logs
+    ])
+
+# Serve favicon to avoid 404 error in browser console
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
