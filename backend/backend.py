@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -9,10 +9,10 @@ import traceback
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Configure database connection from environment variables
 app.config["SQLALCHEMY_DATABASE_URI"] = (
-    f"postgresql://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}@"
-    f"{os.environ['POSTGRES_HOST']}:{5432}/{os.environ['POSTGRES_DB']}"
+    f"postgresql://{os.environ.get('POSTGRES_USER')}:{os.environ.get('POSTGRES_PASSWORD')}@"
+    f"{os.environ.get('POSTGRES_HOST', 'localhost')}:{os.environ.get('POSTGRES_PORT', 5432)}/"
+    f"{os.environ.get('POSTGRES_DB')}"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -35,22 +35,20 @@ def home():
 @app.route("/log", methods=["POST"])
 def log_health():
     try:
-        print("Request Headers:", request.headers)
-        data = request.get_json(silent=True)
-
-        if data is None:
-            return jsonify({"error": "Invalid or missing JSON in request body"}), 400
+        data = request.get_json(force=True)
+        if not data:
+            return jsonify({"error": "Missing JSON body"}), 400
 
         required_fields = ["water", "sleep", "mood", "steps"]
-        missing_fields = [field for field in required_fields if field not in data]
+        missing_fields = [f for f in required_fields if f not in data]
         if missing_fields:
             return jsonify({"error": f"Missing fields: {', '.join(missing_fields)}"}), 400
 
         log = HealthLog(
-            water=data.get("water"),
-            sleep=data.get("sleep"),
-            mood=data.get("mood"),
-            steps=data.get("steps")
+            water=data["water"],
+            sleep=data["sleep"],
+            mood=data["mood"],
+            steps=int(data["steps"])
         )
         db.session.add(log)
         db.session.commit()
@@ -80,12 +78,6 @@ def get_logs():
             "steps": log.steps
         } for log in logs
     ])
-
-# Serve favicon to avoid 404 error in browser console
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
