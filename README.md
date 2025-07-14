@@ -339,3 +339,32 @@ mlflow.log_artifact("model.pkl")
 3. Implement your changes
 4. Add tests
 5. Submit a pull request
+
+### Code Standards
+- **Python**: PEP 8 compliance
+- **JavaScript**: ESLint configuration
+- **Documentation**: Comprehensive docstrings
+- **Testing**: 90%+ code coverage
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Hugging Face**: For transformer models and tokenizers
+- **spaCy**: For advanced NLP capabilities
+- **scikit-learn**: For machine learning algorithms
+- **Chart.js**: For data visualizations
+- **React**: For the frontend framework
+
+## 📞 Support
+
+For support and questions:
+- **Email**: support@advancedmatchhire.com
+- **Documentation**: [docs.advancedmatchhire.com](https://docs.advancedmatchhire.com)
+- **Issues**: [GitHub Issues](https://github.com/advancedmatchhire/issues)
+
+---
+
+**Built with ❤️ for smarter career journeys** 
